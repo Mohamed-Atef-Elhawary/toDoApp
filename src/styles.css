@@ -1,3 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --height-main-heigth: calc(100vh - 16 * 4px);
+}

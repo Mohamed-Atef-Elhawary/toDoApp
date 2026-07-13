@@ -1,1 +1,9 @@
-<p>sidebar-component works!</p>
+<aside class="">
+  <ul class="flex flex-col">
+    @for (alink of asideLinks; track $index) {
+      <li class="px-1 py-2 font-bold">
+        <a>{{ alink }}</a>
+      </li>
+    }
+  </ul>
+</aside>

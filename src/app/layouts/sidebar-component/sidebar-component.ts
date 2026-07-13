@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrl: './sidebar-component.css',
 })
 export class SidebarComponent {
-
+  asideLinks: string[] = ['All', 'Important', 'Complete'];
 }
