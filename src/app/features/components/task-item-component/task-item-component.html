@@ -1,1 +1,3 @@
-<p>task-item-component works!</p>
+@for (task of allTasks(); track task.id) {
+  <p>{{ task.title }}</p>
+}

@@ -1,0 +1,8 @@
+<div class="p-2 flex flex-col gap-4">
+  <app-page-title-component [category]="category" />
+  <app-task-input-component (newTask)="onNewTask($event)" />
+  <div>
+    <h2>Tasks</h2>
+    <app-task-item-component [allTasks]="allTasks()" />
+  </div>
+</div>

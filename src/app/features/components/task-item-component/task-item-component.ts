@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
+import { Itask } from '../../../interfaces/task-interface';
 
 @Component({
   selector: 'app-task-item-component',
@@ -7,5 +8,5 @@ import { Component } from '@angular/core';
   styleUrl: './task-item-component.css',
 })
 export class TaskItemComponent {
-
+  allTasks = input.required<Itask[]>();
 }

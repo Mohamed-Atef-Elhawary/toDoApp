@@ -1,8 +1,13 @@
-<aside class="">
-  <ul class="flex flex-col">
+<aside>
+  <ul class="flex flex-col font-bold">
     @for (alink of asideLinks; track $index) {
-      <li class="px-1 py-2 font-bold">
-        <a>{{ alink }}</a>
+      <li>
+        <a
+          class="px-1 py-2 block not-[.active]:hover:bg-gray-300 transition-colors duration-100"
+          [routerLink]="['tasks', alink.toLowerCase()]"
+          routerLinkActive=" active text-white bg-sky-200 border-l-2 border-red-500"
+          >{{ alink }}</a
+        >
       </li>
     }
   </ul>
