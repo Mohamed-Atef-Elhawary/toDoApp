@@ -1,3 +1,17 @@
 @for (task of allTasks(); track task.id) {
-  <p>{{ task.title }}</p>
+  <article class="flex justify-between mb-2 bg-white py-1 px-2">
+    <h3>{{ task.title }}</h3>
+    <div>
+      @if (task.isImportant) {
+        <fa-icon [icon]="solidStar" class="text-sky-400"></fa-icon>
+      } @else {
+        <fa-icon [icon]="regularStar" class="text-gray-400"></fa-icon>
+      }
+      @if (task.isComplete) {
+        <fa-icon [icon]="solidCheck" class="text-sky-400"></fa-icon>
+      } @else {
+        <fa-icon [icon]="regularCheck" class="text-gray-400"></fa-icon>
+      }
+    </div>
+  </article>
 }

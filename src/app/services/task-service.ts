@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of, retry, throwError, timer } from 'rxjs';
+import { catchError, delay, map, Observable, of, retry, throwError, timer } from 'rxjs';
 import { Itask } from '../interfaces/task-interface';
 import { environment } from '../../environments/environment';
 
@@ -16,9 +16,10 @@ export class TaskService {
     );
   }
   addTask(task: Itask): Observable<Itask> {
-    return this.http
-      .post<Itask>(environment.backendUrl, task)
-      .pipe(catchError(() => throwError(() => new Error('please try again later'))));
+    return this.http.post<Itask>(environment.backendUrl, task).pipe(
+      retry({ count: 1, delay: 1000 }),
+      catchError(() => throwError(() => new Error('please try again later'))),
+    );
   }
 
   deleteTask(id: string): Observable<Itask> {
