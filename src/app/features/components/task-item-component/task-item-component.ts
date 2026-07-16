@@ -1,7 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Itask } from '../../../interfaces/task-interface';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCoffee } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faSolidStar } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faRegularStar } from '@fortawesome/free-regular-svg-icons';
 import { faCircleCheck as faSolidCheck } from '@fortawesome/free-solid-svg-icons';
@@ -19,4 +18,14 @@ export class TaskItemComponent {
   regularStar = faRegularStar;
   solidCheck = faSolidCheck;
   regularCheck = faRegularCheck;
+
+  toggleImportant = output<Itask>();
+  toggleComplete = output<Itask>();
+
+  onToggleImportant(task: Itask) {
+    this.toggleImportant.emit(task);
+  }
+  onToggleCompleted(task: Itask) {
+    this.toggleComplete.emit(task);
+  }
 }

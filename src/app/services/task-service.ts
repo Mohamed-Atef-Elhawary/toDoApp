@@ -1,6 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, delay, map, Observable, of, retry, throwError, timer } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  delay,
+  map,
+  Observable,
+  of,
+  retry,
+  throwError,
+  timer,
+} from 'rxjs';
 import { Itask } from '../interfaces/task-interface';
 import { environment } from '../../environments/environment';
 
@@ -8,6 +18,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class TaskService {
+  searchString$ = new BehaviorSubject('');
   constructor(private http: HttpClient) {}
   getTasks(): Observable<Itask[]> {
     return this.http.get<Itask[]>(environment.backendUrl).pipe(

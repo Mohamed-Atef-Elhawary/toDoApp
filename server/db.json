@@ -3,68 +3,34 @@
     {
       "title": "task1",
       "id": "j2HgJsCVWxA",
-      "isImportant": true
+      "isImportant": false,
+      "isComplete": false
     },
     {
       "title": "task2",
       "id": "NZoYZ5goiNw",
-      "isComplete": true
+      "isComplete": false,
+      "isImportant": false
     },
     {
       "title": "task3",
-      "id": "F8F30p56Sdk"
+      "id": "F8F30p56Sdk",
+      "isImportant": true,
+      "isComplete": false
     },
     {
       "title": "task4",
-      "id": "Fp0xI4tBWKM"
+      "id": "Fp0xI4tBWKM",
+      "isImportant": true,
+      "isComplete": false
     },
     {
-      "title": "task5",
-      "id": "lmil7g8Utfk"
-    },
-    {
-      "title": "task6",
-      "id": "SoHeuoEYL88"
-    },
-    {
-      "title": "task6",
-      "id": "VtJhhT6sASc"
-    },
-    {
-      "title": "task7",
-      "id": "W1nwu46RZN4"
-    },
-    {
-      "title": "t8",
-      "id": "JMyK0GJmbUg"
-    },
-    {
-      "title": "t6",
-      "id": "RYvHVHwWkKw"
-    },
-    {
-      "title": "t9",
-      "id": "7IWeHBxbn7M"
-    },
-    {
-      "title": "hw",
-      "id": "MsBP0fffpt4"
+      "title": "ggg",
+      "id": "HohJUyPoOH8"
     },
     {
       "title": "d",
-      "id": "pLSaxo-T61c"
-    },
-    {
-      "title": "h",
-      "id": "diLJnrAbelc"
-    },
-    {
-      "title": "jjj",
-      "id": "C9eNCDS7D9o"
-    },
-    {
-      "title": "f",
-      "id": "L6CJHCMy2pg"
+      "id": "ZrAQWqm1uZw"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

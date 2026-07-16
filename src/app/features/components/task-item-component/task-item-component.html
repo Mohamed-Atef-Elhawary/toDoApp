@@ -3,14 +3,30 @@
     <h3>{{ task.title }}</h3>
     <div>
       @if (task.isImportant) {
-        <fa-icon [icon]="solidStar" class="text-sky-400"></fa-icon>
+        <fa-icon
+          [icon]="solidStar"
+          class="text-sky-400"
+          (click)="onToggleImportant(task)"
+        ></fa-icon>
       } @else {
-        <fa-icon [icon]="regularStar" class="text-gray-400"></fa-icon>
+        <fa-icon
+          [icon]="regularStar"
+          class="text-gray-400"
+          (click)="onToggleImportant(task)"
+        ></fa-icon>
       }
       @if (task.isComplete) {
-        <fa-icon [icon]="solidCheck" class="text-sky-400"></fa-icon>
+        <fa-icon
+          [icon]="solidCheck"
+          class="text-sky-400"
+          (click)="onToggleCompleted(task)"
+        ></fa-icon>
       } @else {
-        <fa-icon [icon]="regularCheck" class="text-gray-400"></fa-icon>
+        <fa-icon
+          [icon]="regularCheck"
+          class="text-gray-400"
+          (click)="onToggleCompleted(task)"
+        ></fa-icon>
       }
     </div>
   </article>
