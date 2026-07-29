@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { MainLayoutComponent } from './layouts/main-layout-component/main-layout-component';
 
 @Component({
@@ -7,6 +7,4 @@ import { MainLayoutComponent } from './layouts/main-layout-component/main-layout
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
-  protected readonly title = signal('toDoApp');
-}
+export class App {}

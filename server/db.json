@@ -3,14 +3,14 @@
     {
       "title": "task1",
       "id": "j2HgJsCVWxA",
-      "isImportant": false,
-      "isComplete": false
+      "isImportant": true,
+      "isComplete": true
     },
     {
       "title": "task2",
       "id": "NZoYZ5goiNw",
-      "isComplete": false,
-      "isImportant": false
+      "isComplete": true,
+      "isImportant": true
     },
     {
       "title": "task3",
