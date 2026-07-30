@@ -20,6 +20,7 @@ import { environment } from '../../environments/environment';
 export class TaskService {
   searchString$ = new BehaviorSubject('');
   constructor(private http: HttpClient) {}
+
   getTasks(): Observable<Itask[]> {
     return this.http.get<Itask[]>(environment.backendUrl).pipe(
       retry({ count: 1, delay: 1000 }),
