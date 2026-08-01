@@ -27,6 +27,7 @@ export class TaskService {
       catchError(() => throwError(() => new Error('please try again later'))),
     );
   }
+
   addTask(task: Itask): Observable<Itask> {
     return this.http.post<Itask>(environment.backendUrl, task).pipe(
       retry({ count: 1, delay: 1000 }),
