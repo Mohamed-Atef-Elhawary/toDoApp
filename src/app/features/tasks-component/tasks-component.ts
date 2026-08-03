@@ -121,4 +121,9 @@ export class TasksComponent implements OnInit {
       });
     }
   }
+
+  onDelete(task: Itask) {
+    const id = task.id;
+    id && this.taskService.deleteTask(id).subscribe(console.log);
+  }
 }

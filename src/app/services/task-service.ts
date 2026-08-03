@@ -43,8 +43,9 @@ export class TaskService {
   }
 
   updateTask(id: string, changes: Partial<Itask>): Observable<Itask> {
-    return this.http
-      .patch<Itask>(`${environment.backendUrl}/${id}`, changes)
-      .pipe(catchError(() => throwError(() => new Error('please try again later'))));
+    return this.http.patch<Itask>(`${environment.backendUrl}/${id}`, changes).pipe(
+      retry({ count: 1, delay: 1000 }),
+      catchError(() => throwError(() => new Error('please try again later'))),
+    );
   }
 }

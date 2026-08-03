@@ -207,17 +207,150 @@ describe('TaskService', () => {
   });
 
   describe('deleteTask', () => {
+    let deletedTask: Itask;
     beforeEach(() => {
+      deletedTask = { ...tasks[0], id: '1' };
       vi.useFakeTimers();
     });
     afterEach(() => {
       vi.useRealTimers();
     });
 
-    it('should call http.delete with the correct URL and task id', () => {});
-    it('should return the deleted task when the request succeeds', () => {});
-    it('should retry once and return data if the retry succeeds', () => {});
-    it('should not call http.delete more than the configured retry count when all attempts fail', () => {});
-    it('should throw an error with message "please try again later" when all retries fail', () => {});
+    it('should call http.delete with the correct URL and task id', () => {
+      taskService.deleteTask('1').subscribe();
+      const req = httpTestingController.expectOne(`${backendUrl}/1`);
+      req.flush(deletedTask);
+      expect(req.request.method).toBe('DELETE');
+      expect(req.request.url).toBe(`${backendUrl}/1`);
+    });
+
+    it('should return the deleted task when the request succeeds', () => {
+      let myDeletedTask: Itask = {} as Itask;
+      taskService.deleteTask('1').subscribe((delTask) => (myDeletedTask = { ...delTask }));
+      const req = httpTestingController.expectOne(`${backendUrl}/1`);
+      req.flush(deletedTask);
+      expect(myDeletedTask).toEqual(deletedTask);
+    });
+    it('should retry once and return data if the retry succeeds', () => {
+      let myDeletedTask: Itask = {} as Itask;
+      taskService.deleteTask('1').subscribe((delTask) => (myDeletedTask = { ...delTask }));
+      const req1 = httpTestingController.expectOne(`${backendUrl}/1`);
+      req1.flush(null, { status: 500, statusText: 'server error' });
+      vi.advanceTimersByTime(1000);
+      const req2 = httpTestingController.expectOne(`${backendUrl}/1`);
+      req2.flush(deletedTask);
+      expect(myDeletedTask).toEqual(deletedTask);
+    });
+    it('should not call http.delete more than the configured retry count when all attempts fail', () => {
+      let count: number = 0;
+      let errorMessage: string = '';
+      taskService.deleteTask('1').subscribe({ error: (err) => (errorMessage = err.message) });
+      while (errorMessage !== 'please try again later') {
+        if (count > 1) {
+          throw new Error('test excceeded the expected number of attempts');
+        }
+        const req = httpTestingController.expectOne(`${backendUrl}/1`);
+        req.flush(null, { status: 500, statusText: 'server error' });
+        vi.advanceTimersByTime(1000);
+        count++;
+      }
+      expect(count).toBe(2);
+    });
+    it('should throw an error with message "please try again later" when all retries fail', () => {
+      let errorMessage: string = '';
+      let count: number = 0;
+      taskService.deleteTask('1').subscribe({ error: (err) => (errorMessage = err.message) });
+      while (errorMessage !== 'please try again later') {
+        if (count > 1) {
+          throw new Error('test ecceeded the expected numner of attempts');
+        }
+        const req = httpTestingController.expectOne(`${backendUrl}/1`);
+        req.flush(null, { status: 500, statusText: 'server error' });
+        vi.advanceTimersByTime(1000);
+        count++;
+      }
+      expect(errorMessage).toBe('please try again later');
+    });
+  });
+
+  describe('updateTask', () => {
+    let changes: { isComplete: boolean };
+    let updatedTask: Itask;
+    beforeEach(() => {
+      changes = { isComplete: true };
+      updatedTask = { ...tasks[0], id: '1', ...changes };
+      vi.useFakeTimers();
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it('should call the  http.patch with the correct URl, id, and data', () => {
+      taskService.updateTask('1', changes).subscribe();
+      const req = httpTestingController.expectOne(`${backendUrl}/1`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual(changes);
+      expect(req.request.url).toBe(`${backendUrl}/1`);
+      req.flush(updatedTask);
+    });
+
+    it('should return the updated task when the request succeedes', () => {
+      let myUpdatedTask: Itask = {} as Itask;
+      taskService
+        .updateTask('1', changes)
+        .subscribe((upTask: Itask) => (myUpdatedTask = { ...upTask }));
+      const req = httpTestingController.expectOne(`${backendUrl}/1`);
+      req.flush(updatedTask);
+      expect(myUpdatedTask).toEqual(updatedTask);
+    });
+
+    it('should retry once and return the data if the  request succeeds', () => {
+      let myUpdatedTask: Itask = {} as Itask;
+      taskService.updateTask('1', changes).subscribe((upTask) => (myUpdatedTask = { ...upTask }));
+      const req1 = httpTestingController.expectOne(`${backendUrl}/1`);
+      req1.flush(null, { status: 500, statusText: 'server error' });
+      vi.advanceTimersByTime(1000);
+      const req2 = httpTestingController.expectOne(`${backendUrl}/1`);
+      req2.flush(updatedTask);
+      expect(myUpdatedTask).toEqual(updatedTask);
+    });
+
+    it('should not call http.patch more than the configured retry count when all attemps fail', () => {
+      let errorMessage: string = '';
+      let count: number = 0;
+      taskService.updateTask('1', changes).subscribe({
+        error: (err) => {
+          errorMessage = err.message;
+        },
+      });
+      while (errorMessage !== 'please try again later') {
+        if (count > 1) {
+          throw new Error('test exceeded the expected number of attempts');
+        }
+        const req = httpTestingController.expectOne(`${backendUrl}/1`);
+        req.flush(null, { status: 500, statusText: 'server error' });
+        vi.advanceTimersByTime(1000);
+        count++;
+      }
+      expect(count).toBe(2);
+    });
+
+    it('should throw an error with message "please try again later" when all retries fail', () => {
+      let errorMessage: string = '';
+      let count: number = 0;
+      taskService.updateTask('1', changes).subscribe({
+        error: (err) => {
+          errorMessage = err.message;
+        },
+      });
+      while (errorMessage !== 'please try again later') {
+        if (count > 1) {
+          throw new Error('test exceeded the expected number of attempts');
+        }
+        const req = httpTestingController.expectOne(`${backendUrl}/1`);
+        req.flush(null, { status: 500, statusText: 'server error' });
+        vi.advanceTimersByTime(1000);
+        count++;
+      }
+      expect(errorMessage).toBe('please try again later');
+    });
   });
 });

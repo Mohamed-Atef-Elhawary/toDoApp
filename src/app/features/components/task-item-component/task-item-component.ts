@@ -5,6 +5,7 @@ import { faStar as faSolidStar } from '@fortawesome/free-solid-svg-icons';
 import { faStar as faRegularStar } from '@fortawesome/free-regular-svg-icons';
 import { faCircleCheck as faSolidCheck } from '@fortawesome/free-solid-svg-icons';
 import { faCircleCheck as faRegularCheck } from '@fortawesome/free-regular-svg-icons';
+import { faXmarkCircle } from '@fortawesome/free-regular-svg-icons';
 
 @Component({
   selector: 'app-task-item-component',
@@ -18,14 +19,17 @@ export class TaskItemComponent {
   regularStar = faRegularStar;
   solidCheck = faSolidCheck;
   regularCheck = faRegularCheck;
-
+  xmake = faXmarkCircle;
   toggleImportant = output<Itask>();
   toggleComplete = output<Itask>();
-
+  delete = output<Itask>();
   onToggleImportant(task: Itask) {
     this.toggleImportant.emit(task);
   }
   onToggleCompleted(task: Itask) {
     this.toggleComplete.emit(task);
+  }
+  onDelete(task: Itask) {
+    this.delete.emit(task);
   }
 }
