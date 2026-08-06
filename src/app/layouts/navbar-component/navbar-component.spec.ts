@@ -1,5 +1,9 @@
 import { vi } from 'vitest';
 import { NavbarComponent } from './navbar-component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TaskService } from '../../services/task-service';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('NavbarComponent', () => {
   describe('NavbarComponent.ts', () => {
@@ -54,5 +58,72 @@ describe('NavbarComponent', () => {
       expect(mockTaskService.searchString$.next).toHaveBeenCalledWith('');
     });
   });
-  // describe('NavbarComponent.html', () => {});
+  describe('NavbarComponent.html', () => {
+    let fixture: ComponentFixture<NavbarComponent>;
+    let debugEle: DebugElement;
+    let navbarComponent: NavbarComponent;
+    let myInput: DebugElement;
+    let nativeInput: HTMLInputElement;
+
+    beforeEach(() => {
+      let mockTaskService = { searchString$: { next: vi.fn() } };
+      TestBed.configureTestingModule({
+        providers: [{ provide: TaskService, useValue: mockTaskService }],
+      });
+      fixture = TestBed.createComponent(NavbarComponent);
+      navbarComponent = fixture.componentInstance;
+      debugEle = fixture.debugElement;
+      fixture.detectChanges();
+      myInput = debugEle.query(By.css('input'));
+      nativeInput = myInput.nativeElement as HTMLInputElement;
+      vi.spyOn(navbarComponent, 'onInput');
+    });
+    it('should create the input field', () => {
+      expect(debugEle.query(By.css('input'))).toBeTruthy();
+    });
+    it('should initialize the input value with searchString', async () => {
+      navbarComponent.searchString = 'test value';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const value: string = (myInput.nativeElement as HTMLInputElement).value;
+      expect(value).toBe(fixture.componentInstance.searchString);
+    });
+
+    it('should update the searchString with the latest value entered by the user', () => {
+      nativeInput.value = 'new value';
+      nativeInput.dispatchEvent(new InputEvent('input'));
+      expect(navbarComponent.searchString).toBe('new value');
+    });
+    it('should update the input field with the latest searchString value coming from the component', async () => {
+      navbarComponent.searchString = 'first value';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(nativeInput.value).toBe('first value');
+      navbarComponent.searchString = 'last value';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(nativeInput.value).toBe('last value');
+    });
+    it('should call onInput() whenever the input value changes', () => {
+      nativeInput.value = 'value 1';
+      nativeInput.dispatchEvent(new InputEvent('input'));
+      expect(navbarComponent.onInput).toHaveBeenCalledTimes(1);
+    });
+    it('should call onInput() once for each input value change', () => {
+      let count = 0;
+      for (let i = 0; i < 5; i++) {
+        nativeInput.value = `value ${i + 1}`;
+        nativeInput.dispatchEvent(new InputEvent('input'));
+        count++;
+      }
+      expect(navbarComponent.onInput).toHaveBeenCalledTimes(count);
+    });
+    it('should call onInput() when entire input field value is removed', () => {
+      nativeInput.value = 'old value';
+      nativeInput.dispatchEvent(new InputEvent('input'));
+      nativeInput.value = '';
+      nativeInput.dispatchEvent(new InputEvent('input'));
+      expect(navbarComponent.onInput).toHaveBeenCalledTimes(2);
+    });
+  });
 });
