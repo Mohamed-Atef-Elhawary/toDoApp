@@ -124,6 +124,14 @@ export class TasksComponent implements OnInit {
 
   onDelete(task: Itask) {
     const id = task.id;
-    id && this.taskService.deleteTask(id).subscribe(console.log);
+    id &&
+      this.taskService.deleteTask(id).subscribe({
+        next: (deletedTask) => {
+          this.allTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
+        },
+        error: (err) => {
+          this.toastr.error(err.message, 'Error', FailConfig);
+        },
+      });
   }
 }
