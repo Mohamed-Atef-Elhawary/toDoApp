@@ -75,13 +75,13 @@ export class TasksComponent implements OnInit {
     });
   }
 
-  onNewTask(newTask: string) {
-    this.taskService.addTask({ title: newTask }).subscribe({
+  onNewTask(newTaskTitle: string) {
+    this.taskService.addTask({ title: newTaskTitle }).subscribe({
       next: (task) => {
         this.allTasks.update((tasks: Itask[]) => [...tasks, task]);
         this.toastr.success('The task added successfully', 'Success', SuccessConfig);
       },
-      error: (err) => this.toastr.error(err, 'Error', FailConfig),
+      error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
     });
   }
 
@@ -91,10 +91,11 @@ export class TasksComponent implements OnInit {
         next: (value) => {
           this.allTasks.update((tasks) => {
             return tasks.map((task) => {
+              const modifiedTask: Itask = { ...task };
               if (task.id === value.id) {
-                task.isImportant = value.isImportant;
+                modifiedTask.isImportant = value.isImportant;
               }
-              return task;
+              return modifiedTask;
             });
           });
         },
@@ -108,10 +109,11 @@ export class TasksComponent implements OnInit {
         next: (value) => {
           this.allTasks.update((tasks) => {
             return tasks.map((task) => {
+              const modifiedTask: Itask = { ...task };
               if (task.id === value.id) {
-                task.isComplete = value.isComplete;
+                modifiedTask.isComplete = value.isComplete;
               }
-              return task;
+              return modifiedTask;
             });
           });
         },

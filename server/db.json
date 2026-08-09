@@ -2,15 +2,20 @@
   "task": [
     {
       "title": "t1",
-      "id": "ncZ9D3tOFlM"
+      "id": "ncZ9D3tOFlM",
+      "isComplete": true,
+      "isImportant": false
     },
     {
       "title": "t2",
-      "id": "2rX5Wih94M8"
+      "id": "2rX5Wih94M8",
+      "isComplete": false,
+      "isImportant": false
     },
     {
       "title": "t3",
-      "id": "tdnFkqdx0yc"
+      "id": "tdnFkqdx0yc",
+      "isImportant": false
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
