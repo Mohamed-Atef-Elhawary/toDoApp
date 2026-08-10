@@ -66,6 +66,8 @@ export class TasksComponent implements OnInit {
   getTasks() {
     this.taskService.getTasks().subscribe({
       next: (tasks) => {
+        console.log('in get Tasks next ', tasks);
+
         this.allTasks.set(tasks);
         this.storedTasks.set(tasks);
       },
@@ -76,46 +78,52 @@ export class TasksComponent implements OnInit {
   }
 
   onNewTask(newTaskTitle: string) {
-    this.taskService.addTask({ title: newTaskTitle }).subscribe({
-      next: (task) => {
-        this.allTasks.update((tasks: Itask[]) => [...tasks, task]);
-        this.toastr.success('The task added successfully', 'Success', SuccessConfig);
-      },
-      error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
-    });
-  }
-
-  onToggleImportant(task: Itask) {
-    if (task.id) {
-      this.taskService.updateTask(task.id, { isImportant: !task.isImportant }).subscribe({
-        next: (value) => {
-          this.allTasks.update((tasks) => {
-            return tasks.map((task) => {
-              const modifiedTask: Itask = { ...task };
-              if (task.id === value.id) {
-                modifiedTask.isImportant = value.isImportant;
-              }
-              return modifiedTask;
-            });
-          });
+    this.taskService
+      .modifyTasks([{ title: newTaskTitle, id: String(Date.now()) }, ...this.allTasks()])
+      .subscribe({
+        next: (tasks) => {
+          console.log('afetr onNewTask task', tasks);
+          this.allTasks.set(tasks);
+          console.log('this.allTasks()', this.allTasks());
+          this.toastr.success('The task added successfully', 'Success', SuccessConfig);
         },
         error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
       });
-    }
   }
-  onToggleComplete(task: Itask) {
-    if (task.id) {
-      this.taskService.updateTask(task.id, { isComplete: !task.isComplete }).subscribe({
-        next: (value) => {
-          this.allTasks.update((tasks) => {
-            return tasks.map((task) => {
-              const modifiedTask: Itask = { ...task };
-              if (task.id === value.id) {
-                modifiedTask.isComplete = value.isComplete;
-              }
-              return modifiedTask;
-            });
-          });
+
+  // onToggleImportant(task: Itask) {
+  //   if (task.id) {
+  //     this.taskService.updateTask(task.id, { isImportant: !task.isImportant }).subscribe({
+  //       next: (value) => {
+  //         this.allTasks.update((tasks) => {
+  //           return tasks.map((task) => {
+  //             const modifiedTask: Itask = { ...task };
+  //             if (task.id === value.id) {
+  //               modifiedTask.isImportant = value.isImportant;
+  //             }
+  //             return modifiedTask;
+  //           });
+  //         });
+  //       },
+  //       error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
+  //     });
+  //   }
+  // }
+
+  onToggleImportant(updatedTask: Itask) {
+    if (updatedTask.id) {
+      this.allTasks.update((tasks) => {
+        return tasks.map((task) => {
+          const modifiedTask: Itask = { ...task };
+          if (task.id === updatedTask.id) {
+            modifiedTask.isImportant = !updatedTask.isImportant;
+          }
+          return modifiedTask;
+        });
+      });
+      this.taskService.modifyTasks(this.allTasks()).subscribe({
+        next: (modifiedTasks) => {
+          this.toastr.error('important status has been changed', 'Success', SuccessConfig);
         },
         error: (err) => {
           this.toastr.error(err.message, 'Error', FailConfig);
@@ -124,16 +132,57 @@ export class TasksComponent implements OnInit {
     }
   }
 
-  onDelete(task: Itask) {
-    const id = task.id;
-    id &&
-      this.taskService.deleteTask(id).subscribe({
-        next: (deletedTask) => {
-          this.allTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
-        },
-        error: (err) => {
-          this.toastr.error(err.message, 'Error', FailConfig);
-        },
+  // onToggleComplete(task: Itask) {
+  //   if (task.id) {
+  //     this.taskService.updateTask(task.id, { isComplete: !task.isComplete }).subscribe({
+  //       next: (value) => {
+  //         this.allTasks.update((tasks) => {
+  //           return tasks.map((task) => {
+  //             const modifiedTask: Itask = { ...task };
+  //             if (task.id === value.id) {
+  //               modifiedTask.isComplete = value.isComplete;
+  //             }
+  //             return modifiedTask;
+  //           });
+  //         });
+  //       },
+  //       error: (err) => {
+  //         this.toastr.error(err.message, 'Error', FailConfig);
+  //       },
+  //     });
+  //   }
+  // }
+  onToggleComplete(updatedTask: Itask) {
+    this.allTasks.update((tasks) => {
+      return tasks.map((task) => {
+        const modifiedTask: Itask = { ...task };
+        if (task.id === updatedTask.id) {
+          modifiedTask.isComplete = !updatedTask.isComplete;
+        }
+        return modifiedTask;
       });
+    });
+
+    this.taskService.modifyTasks(this.allTasks()).subscribe({
+      next: (modifiedTasks) => {
+        this.toastr.error('complete status has been changed', 'Success', SuccessConfig);
+      },
+      error: (err) => {
+        this.toastr.error(err.message, 'Error', FailConfig);
+      },
+    });
+  }
+
+  onDelete(deletedTask: Itask) {
+    const id = deletedTask.id;
+    id && this.allTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
+    this.taskService.modifyTasks(this.allTasks()).subscribe({
+      next: (modifiedTasks) => {
+        this.toastr.error('task has been deleted successfully', 'Success', SuccessConfig);
+      },
+      error: (err) => {
+        this.toastr.error(err.message, 'Error', FailConfig);
+      },
+    });
   }
 }
