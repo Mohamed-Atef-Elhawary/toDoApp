@@ -1,16 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {
-  BehaviorSubject,
-  catchError,
-  delay,
-  map,
-  Observable,
-  of,
-  retry,
-  throwError,
-  timer,
-} from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, retry, Subject, throwError } from 'rxjs';
 import { Ibins, Itask } from '../interfaces/task-interface';
 import { environment } from '../../environments/environment';
 
@@ -18,7 +8,8 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class TaskService {
-  searchString$ = new BehaviorSubject('');
+  searchString$ = new BehaviorSubject<string>('');
+
   constructor(private http: HttpClient) {}
 
   getTasks(): Observable<Itask[]> {
@@ -29,7 +20,6 @@ export class TaskService {
       .pipe(
         retry({ count: 1, delay: 1000 }),
         map((response: Ibins) => {
-          console.log('from map', response);
           return response['record']['tasks'];
         }),
         catchError(() => throwError(() => new Error('please try again later'))),
@@ -50,24 +40,9 @@ export class TaskService {
       .pipe(
         retry({ count: 1, delay: 1000 }),
         map((response: Ibins) => {
-          console.log('response ', response);
           return response['record']['tasks'];
         }),
         catchError(() => throwError(() => new Error('please try again later'))),
       );
-  }
-
-  deleteTask(id: string): Observable<Itask> {
-    return this.http.delete<Itask>(`${environment.backendUrl}/${id}`).pipe(
-      retry({ count: 1, delay: 1000 }),
-      catchError(() => throwError(() => new Error('please try again later'))),
-    );
-  }
-
-  updateTask(id: string, changes: Partial<Itask>): Observable<Itask> {
-    return this.http.patch<Itask>(`${environment.backendUrl}/${id}`, changes).pipe(
-      retry({ count: 1, delay: 1000 }),
-      catchError(() => throwError(() => new Error('please try again later'))),
-    );
   }
 }
