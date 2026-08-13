@@ -60,14 +60,13 @@ export class TasksComponent implements OnInit {
           this.allTasks.set(this.storedTasks());
         }
       });
+
     this.getTasks();
   }
 
   getTasks() {
     this.taskService.getTasks().subscribe({
       next: (tasks) => {
-        console.log('in get Tasks next ', tasks);
-
         this.allTasks.set(tasks);
         this.storedTasks.set(tasks);
       },
@@ -78,82 +77,48 @@ export class TasksComponent implements OnInit {
   }
 
   onNewTask(newTaskTitle: string) {
-    this.taskService
-      .modifyTasks([{ title: newTaskTitle, id: String(Date.now()) }, ...this.allTasks()])
-      .subscribe({
-        next: (tasks) => {
-          console.log('afetr onNewTask task', tasks);
-          this.allTasks.set(tasks);
-          console.log('this.allTasks()', this.allTasks());
-          this.toastr.success('The task added successfully', 'Success', SuccessConfig);
-        },
-        error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
-      });
-  }
-
-  // onToggleImportant(task: Itask) {
-  //   if (task.id) {
-  //     this.taskService.updateTask(task.id, { isImportant: !task.isImportant }).subscribe({
-  //       next: (value) => {
-  //         this.allTasks.update((tasks) => {
-  //           return tasks.map((task) => {
-  //             const modifiedTask: Itask = { ...task };
-  //             if (task.id === value.id) {
-  //               modifiedTask.isImportant = value.isImportant;
-  //             }
-  //             return modifiedTask;
-  //           });
-  //         });
-  //       },
-  //       error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
-  //     });
-  //   }
-  // }
-
-  onToggleImportant(updatedTask: Itask) {
-    if (updatedTask.id) {
-      this.allTasks.update((tasks) => {
-        return tasks.map((task) => {
-          const modifiedTask: Itask = { ...task };
-          if (task.id === updatedTask.id) {
-            modifiedTask.isImportant = !updatedTask.isImportant;
-          }
-          return modifiedTask;
+    const regXp = /task \d{1,5}\b/i;
+    if (regXp.test(newTaskTitle)) {
+      this.taskService
+        .modifyTasks([{ title: newTaskTitle, id: String(Date.now()) }, ...this.storedTasks()])
+        .subscribe({
+          next: (tasks) => {
+            this.storedTasks.set(tasks);
+            this.toastr.success('The task added successfully', 'Success', SuccessConfig);
+            const value = this.taskService.searchString$.value;
+            this.taskService.searchString$.next(value);
+          },
+          error: (err) => this.toastr.error(err.message, 'Error', FailConfig),
         });
-      });
-      this.taskService.modifyTasks(this.allTasks()).subscribe({
-        next: (modifiedTasks) => {
-          this.toastr.error('important status has been changed', 'Success', SuccessConfig);
-        },
-        error: (err) => {
-          this.toastr.error(err.message, 'Error', FailConfig);
-        },
-      });
+    } else {
+      this.toastr.error("Task must follow the format 'task <number>'");
     }
   }
+  onToggleImportant(updatedTask: Itask) {
+    this.storedTasks.update((tasks) => {
+      return tasks.map((task) => {
+        const modifiedTask: Itask = { ...task };
+        if (task.id === updatedTask.id) {
+          modifiedTask.isImportant = !updatedTask.isImportant;
+        }
+        return modifiedTask;
+      });
+    });
+    this.taskService.modifyTasks(this.storedTasks()).subscribe({
+      next: (tasks) => {
+        this.allTasks.set(tasks);
+        this.toastr.success('important status has been changed', 'Success', SuccessConfig);
+        const value = this.taskService.searchString$.value;
+        this.taskService.searchString$.next(value);
+      },
+      error: (err) => {
+        this.toastr.error(err.message, 'Error', FailConfig);
+      },
+    });
+  }
 
-  // onToggleComplete(task: Itask) {
-  //   if (task.id) {
-  //     this.taskService.updateTask(task.id, { isComplete: !task.isComplete }).subscribe({
-  //       next: (value) => {
-  //         this.allTasks.update((tasks) => {
-  //           return tasks.map((task) => {
-  //             const modifiedTask: Itask = { ...task };
-  //             if (task.id === value.id) {
-  //               modifiedTask.isComplete = value.isComplete;
-  //             }
-  //             return modifiedTask;
-  //           });
-  //         });
-  //       },
-  //       error: (err) => {
-  //         this.toastr.error(err.message, 'Error', FailConfig);
-  //       },
-  //     });
-  //   }
-  // }
   onToggleComplete(updatedTask: Itask) {
-    this.allTasks.update((tasks) => {
+    this.storedTasks.update((tasks) => {
       return tasks.map((task) => {
         const modifiedTask: Itask = { ...task };
         if (task.id === updatedTask.id) {
@@ -163,9 +128,13 @@ export class TasksComponent implements OnInit {
       });
     });
 
-    this.taskService.modifyTasks(this.allTasks()).subscribe({
-      next: (modifiedTasks) => {
-        this.toastr.error('complete status has been changed', 'Success', SuccessConfig);
+    this.taskService.modifyTasks(this.storedTasks()).subscribe({
+      next: (tasks) => {
+        this.allTasks.set(tasks);
+
+        this.toastr.success('complete status has been changed', 'Success', SuccessConfig);
+        const value = this.taskService.searchString$.value;
+        this.taskService.searchString$.next(value);
       },
       error: (err) => {
         this.toastr.error(err.message, 'Error', FailConfig);
@@ -175,10 +144,14 @@ export class TasksComponent implements OnInit {
 
   onDelete(deletedTask: Itask) {
     const id = deletedTask.id;
-    id && this.allTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
-    this.taskService.modifyTasks(this.allTasks()).subscribe({
-      next: (modifiedTasks) => {
-        this.toastr.error('task has been deleted successfully', 'Success', SuccessConfig);
+    id && this.storedTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
+    this.taskService.modifyTasks(this.storedTasks()).subscribe({
+      next: (tasks) => {
+        this.allTasks.set(tasks);
+
+        this.toastr.success('task has been deleted successfully', 'Success', SuccessConfig);
+        const value = this.taskService.searchString$.value;
+        this.taskService.searchString$.next(value);
       },
       error: (err) => {
         this.toastr.error(err.message, 'Error', FailConfig);

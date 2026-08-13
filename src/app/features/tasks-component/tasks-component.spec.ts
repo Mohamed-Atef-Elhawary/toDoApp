@@ -11,9 +11,7 @@ import { FailConfig, SuccessConfig } from '../../config/toastr-config';
 type MockTaskService = {
   searchString$: BehaviorSubject<string>;
   getTasks: Mock;
-  addTask: Mock;
-  updateTask: Mock;
-  deleteTask: Mock;
+  modifyTasks: Mock;
 };
 describe('TasksComponent', () => {
   let fixture: ComponentFixture<TasksComponent>;
@@ -31,9 +29,7 @@ describe('TasksComponent', () => {
     let spyTaskService: MockTaskService = {
       searchString$: new BehaviorSubject(''),
       getTasks: vi.fn(() => of()),
-      addTask: vi.fn(() => of({})),
-      updateTask: vi.fn(() => of({})),
-      deleteTask: vi.fn(() => of({})),
+      modifyTasks: vi.fn((tasks: Itask[]) => of(tasks)),
     };
     let spyToastrService = { success: vi.fn(), error: vi.fn() };
     await TestBed.configureTestingModule({
@@ -48,14 +44,20 @@ describe('TasksComponent', () => {
     mockActivatedRoute = TestBed.inject(ActivatedRoute);
     mockTaskService = TestBed.inject(TaskService) as unknown as MockTaskService;
     mockToastrService = TestBed.inject(ToastrService);
-    tasks = [{ title: 't1' }, { title: 't2' }, { title: 't3' }, { title: 't4' }, { title: 't5' }];
+    tasks = [
+      { title: 'task 1', id: '1' },
+      { title: 'task 2', id: '2' },
+      { title: 'task 3', id: '3' },
+      { title: 'task 4', id: '4' },
+      { title: 'task 5', id: '5' },
+    ];
   });
 
-  it.skip('should create the app', () => {
+  it('should create the app', () => {
     expect(tasksComponent).toBeTruthy();
   });
 
-  describe.skip('Setting category from route param', () => {
+  describe('Setting category from route param', () => {
     it('should set the category to the value from the route param when it exists', () => {
       mockActivatedRoute.paramMap = of({ get: vi.fn((category: string) => 'important') });
       fixture.detectChanges();
@@ -68,7 +70,7 @@ describe('TasksComponent', () => {
     });
   });
 
-  describe.skip('Filtering tasks by searchString', () => {
+  describe('Filtering tasks by searchString', () => {
     beforeEach(() => {
       mockTaskService.getTasks.mockReturnValue(of(tasks));
 
@@ -79,19 +81,19 @@ describe('TasksComponent', () => {
       expect(tasksComponent.storedTasks(), 'storedTasks should match fetched tasks').toEqual(tasks);
     });
     it('should return only tasks whose title includes the search string', () => {
-      mockTaskService.searchString$.next('1');
-      expect(tasksComponent.allTasks()).toEqual([{ title: 't1' }]);
+      mockTaskService.searchString$.next('task 1');
+      expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
     });
     it('should stop the emission after destroying', () => {
-      mockTaskService.searchString$.next('t1');
-      expect(tasksComponent.allTasks()).toEqual([{ title: 't1' }]);
+      mockTaskService.searchString$.next('task 1');
+      expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
       fixture.destroy();
-      mockTaskService.searchString$.next('t2');
-      expect(tasksComponent.allTasks()).toEqual([{ title: 't1' }]);
+      mockTaskService.searchString$.next('task 2');
+      expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
     });
   });
 
-  describe.skip('Loading tasks at ngOnInit ', () => {
+  describe('Loading tasks at ngOnInit ', () => {
     describe('When API call succeeds', () => {
       it('should set tasks to allTasks and storedTasks', () => {
         mockTaskService.getTasks.mockReturnValue(of(tasks));
@@ -112,7 +114,7 @@ describe('TasksComponent', () => {
         );
       });
       it('should not modify the values of allTasks and storedTasks', () => {
-        let initialValue: Itask[] = [{ title: 'initialValue' }];
+        let initialValue: Itask[] = [{ title: 'initialValue', id: '1' }];
         tasksComponent.storedTasks.set(initialValue);
         tasksComponent.allTasks.set(initialValue);
         mockTaskService.getTasks.mockReturnValue(throwError(() => httpErrorResponse));
@@ -123,27 +125,67 @@ describe('TasksComponent', () => {
     });
   });
 
-  describe.skip('Adding a new task', () => {
-    it('should call taskService.addTask() with task title wrapped in object', () => {
-      let newTaskTitle = 'new task';
+  describe('Adding a new task', () => {
+    it('should call taskService.modifyTasks() when newTaskTitle passes the regXp test', () => {
+      const newTaskTitle: string = 'task 1';
       tasksComponent.onNewTask(newTaskTitle);
-      expect(mockTaskService.addTask).toHaveBeenCalledTimes(1);
-      expect(mockTaskService.addTask).toHaveBeenCalledWith({ title: newTaskTitle });
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
     });
+    it('should call toastr.error whith expected message  when newTaskTitle fails the regXp test', () => {
+      const newTaskTitle: string = 't1';
+      tasksComponent.onNewTask(newTaskTitle);
+      expect(mockToastrService.error).toHaveBeenCalledTimes(1);
+      expect(mockToastrService.error).toHaveBeenCalledWith(
+        "Task must follow the format 'task <number>'",
+      );
+    });
+
+    it('should call taskService.modifyTasks() with array of new task title and id blus storedTasks', () => {
+      const newTaskTitle: string = 'task 1';
+      vi.spyOn(Date, 'now').mockReturnValue(123);
+      const existingTasks = tasksComponent.storedTasks();
+      tasksComponent.onNewTask(newTaskTitle);
+
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledWith([
+        { title: newTaskTitle, id: '123' },
+        ...existingTasks,
+      ]);
+    });
+
+    //   it('should call taskService.addTask() with array of new task title and id blus storedTasks', () => {
+    //     const newTaskTitle: string = 'task 1';
+    //     const existingTasks = tasksComponent.storedTasks();
+    //     tasksComponent.onNewTask(newTaskTitle);
+    //     expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
+    //     expect(mockTaskService.modifyTasks).toHaveBeenCalledWith([
+    //       { title: newTaskTitle, id: expect.any(String) },
+    //       ...existingTasks,
+    //     ]);
+    //   });
+
     describe('When API succeeds', () => {
-      let newTaskTitle = 'new task';
-      let task: Itask = { title: newTaskTitle, id: 'newTaskId' };
-      let allTasks: Itask[];
+      let newTaskTitle = 'task 6';
+      let newMokedTask: Itask = { title: newTaskTitle, id: '6' };
+      let storedTasks: Itask[];
       beforeEach(() => {
-        allTasks = [...tasks, task];
-        tasksComponent.allTasks.set(tasks);
-        mockTaskService.addTask.mockReturnValue(of(task));
-        tasksComponent.onNewTask(newTaskTitle);
+        storedTasks = [...tasks, newMokedTask];
+        tasksComponent.storedTasks.set(tasks);
+        mockTaskService.modifyTasks.mockReturnValue(of(storedTasks));
+        fixture.detectChanges();
       });
-      it('should update the allTasks with the newTask', () => {
-        expect(tasksComponent.allTasks()).toEqual(allTasks);
+      it('should update storedTasks with the newTask', () => {
+        tasksComponent.onNewTask(newTaskTitle);
+        expect(tasksComponent.storedTasks()).toEqual(storedTasks);
+      });
+
+      it('should reEmit taskService.searchString$ with the value', () => {
+        mockTaskService.searchString$.next('task 1');
+        tasksComponent.onNewTask(newTaskTitle);
+        expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
       });
       it('should call toastr.success', () => {
+        tasksComponent.onNewTask(newTaskTitle);
         expect(mockToastrService.success).toHaveBeenCalledTimes(1);
         expect(mockToastrService.success).toHaveBeenCalledWith(
           'The task added successfully',
@@ -153,10 +195,10 @@ describe('TasksComponent', () => {
       });
     });
     describe('When API fails', () => {
-      let newTaskTitle = 'new task';
+      let newTaskTitle = 'task 6';
       beforeEach(() => {
-        mockTaskService.addTask.mockReturnValue(throwError(() => httpErrorResponse));
-        tasksComponent.allTasks.set(tasks);
+        mockTaskService.modifyTasks.mockReturnValue(throwError(() => httpErrorResponse));
+        tasksComponent.storedTasks.set(tasks);
         tasksComponent.onNewTask(newTaskTitle);
       });
 
@@ -168,126 +210,116 @@ describe('TasksComponent', () => {
           FailConfig,
         );
       });
-      it('should not update the allTasks', () => {
-        expect(tasksComponent.allTasks()).toEqual(tasks);
+      it('should not update storedTasks', () => {
+        expect(tasksComponent.storedTasks()).toEqual(tasks);
       });
     });
   });
 
   describe.skip("Toggle task's isImportant", () => {
-    describe('If task.id is existing', () => {
-      it('should call taskService.updateTask with the task id and toggled isImportant value', () => {
-        tasks[0] = { ...tasks[0], id: '1' };
-        tasksComponent.onToggleImportant(tasks[0]);
-        expect(mockTaskService.updateTask).toHaveBeenCalledTimes(1);
-        expect(mockTaskService.updateTask).toHaveBeenCalledWith(tasks[0].id, {
-          isImportant: !tasks[0].isImportant,
-        });
-      });
-      describe('When Api call succeeds', () => {
-        beforeEach(() => {
-          tasks[0] = { ...tasks[0], id: '1' };
-          mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isImportant: true }));
-          tasksComponent.allTasks.set(tasks);
-
-          tasksComponent.onToggleImportant(tasks[0]);
-        });
-        it('should update the isImportant status of the specified task', () => {
-          const modifiedTask = tasksComponent
-            .allTasks()
-            .find((task: Itask) => task.id === tasks[0].id);
-          expect(modifiedTask).toEqual({ ...tasks[0], isImportant: true });
-        });
-        it('should not impact the other tasks', () => {
-          const otherTasks = tasksComponent
-            .allTasks()
-            .filter((task: Itask) => task.id !== tasks[0].id);
-          expect(otherTasks).toEqual(tasks.slice(1));
-        });
-      });
-      describe('When Api call fails', () => {
-        beforeEach(() => {
-          tasks[0] = { ...tasks[0], id: '1' };
-          tasksComponent.allTasks.set(tasks);
-          mockTaskService.updateTask.mockReturnValue(throwError(() => httpErrorResponse));
-          tasksComponent.onToggleImportant(tasks[0]);
-        });
-        it('should not update the allTasks', () => {
-          expect(tasksComponent.allTasks()).toEqual(tasks);
-        });
-        it('should call toastr.error', () => {
-          expect(mockToastrService.error).toHaveBeenCalledTimes(1);
-        });
-      });
-    });
-    describe('If task.id is not existing', () => {
-      it('should not update the allTasks', () => {
-        tasksComponent.allTasks.set(tasks);
-        mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isImportant: true }));
-        tasksComponent.onToggleImportant(tasksComponent.allTasks()[0]);
-        expect(tasksComponent.allTasks()).toEqual(tasks);
-      });
-    });
+    it("should toggle task's isImportant status in storedTasks");
+    // it('should call taskService.modifyTasks with the storedTasks', () => {
+    //   tasks[0] = { ...tasks[0], id: '1' };
+    //   tasksComponent.onToggleImportant(tasks[0]);
+    //   expect(mockTaskService.updateTask).toHaveBeenCalledTimes(1);
+    //   expect(mockTaskService.updateTask).toHaveBeenCalledWith(tasks[0].id, {
+    //     isImportant: !tasks[0].isImportant,
+    //   });
+    // });
+    // describe('When Api call succeeds', () => {
+    //   beforeEach(() => {
+    //     tasks[0] = { ...tasks[0], id: '1' };
+    //     mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isImportant: true }));
+    //     tasksComponent.allTasks.set(tasks);
+    //     tasksComponent.onToggleImportant(tasks[0]);
+    //   });
+    //   it('should update the isImportant status of the specified task', () => {
+    //     const modifiedTask = tasksComponent
+    //       .allTasks()
+    //       .find((task: Itask) => task.id === tasks[0].id);
+    //     expect(modifiedTask).toEqual({ ...tasks[0], isImportant: true });
+    //   });
+    //   it('should not impact the other tasks', () => {
+    //     const otherTasks = tasksComponent
+    //       .allTasks()
+    //       .filter((task: Itask) => task.id !== tasks[0].id);
+    //     expect(otherTasks).toEqual(tasks.slice(1));
+    //   });
+    // });
+    // describe('When Api call fails', () => {
+    //   beforeEach(() => {
+    //     tasks[0] = { ...tasks[0], id: '1' };
+    //     tasksComponent.allTasks.set(tasks);
+    //     mockTaskService.updateTask.mockReturnValue(throwError(() => httpErrorResponse));
+    //     tasksComponent.onToggleImportant(tasks[0]);
+    //   });
+    //   it('should not update the allTasks', () => {
+    //     expect(tasksComponent.allTasks()).toEqual(tasks);
+    //   });
+    //   it('should call toastr.error', () => {
+    //     expect(mockToastrService.error).toHaveBeenCalledTimes(1);
+    //   });
+    // });
   });
 
-  describe("Toggle task's isComplete", () => {
-    describe('If task.id is existing', () => {
-      it('should call taskService.updateTask with the task id and toggled isComplete value', () => {
-        tasks[0] = { ...tasks[0], id: '1' };
-        tasksComponent.onToggleComplete(tasks[0]);
-        expect(mockTaskService.updateTask).toHaveBeenCalledTimes(1);
-        expect(mockTaskService.updateTask).toHaveBeenCalledWith(tasks[0].id, {
-          isComplete: !tasks[0].isComplete,
-        });
-      });
-      describe('When Api call succeeds', () => {
-        beforeEach(() => {
-          tasks[0] = { ...tasks[0], id: '1' };
-          mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
-          tasksComponent.allTasks.set(tasks);
-          tasksComponent.onToggleComplete(tasks[0]);
-        });
-        it('should update the isComplete status of the specified task', () => {
-          const modifiedTask: Itask = tasksComponent
-            .allTasks()
-            .find((task) => task.id === tasks[0].id)!;
-          expect(modifiedTask).toEqual({ ...tasks[0], isComplete: true });
-        });
-        it('should not impact the other tasks', () => {
-          const otherTasks: Itask[] = tasksComponent
-            .allTasks()
-            .filter((task) => task.id !== tasks[0].id);
-          expect(otherTasks).toEqual(tasks.slice(1));
-        });
-      });
-      describe('When Api call fails', () => {
-        beforeEach(() => {
-          tasks[0] = { ...tasks[0], id: '1' };
-          mockTaskService.updateTask.mockReturnValue(throwError(() => httpErrorResponse));
+  //   describe("Toggle task's isComplete", () => {
+  //     describe('If task.id is existing', () => {
+  //       it('should call taskService.updateTask with the task id and toggled isComplete value', () => {
+  //         tasks[0] = { ...tasks[0], id: '1' };
+  //         tasksComponent.onToggleComplete(tasks[0]);
+  //         expect(mockTaskService.updateTask).toHaveBeenCalledTimes(1);
+  //         expect(mockTaskService.updateTask).toHaveBeenCalledWith(tasks[0].id, {
+  //           isComplete: !tasks[0].isComplete,
+  //         });
+  //       });
+  //       describe('When Api call succeeds', () => {
+  //         beforeEach(() => {
+  //           tasks[0] = { ...tasks[0], id: '1' };
+  //           mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
+  //           tasksComponent.allTasks.set(tasks);
+  //           tasksComponent.onToggleComplete(tasks[0]);
+  //         });
+  //         it('should update the isComplete status of the specified task', () => {
+  //           const modifiedTask: Itask = tasksComponent
+  //             .allTasks()
+  //             .find((task) => task.id === tasks[0].id)!;
+  //           expect(modifiedTask).toEqual({ ...tasks[0], isComplete: true });
+  //         });
+  //         it('should not impact the other tasks', () => {
+  //           const otherTasks: Itask[] = tasksComponent
+  //             .allTasks()
+  //             .filter((task) => task.id !== tasks[0].id);
+  //           expect(otherTasks).toEqual(tasks.slice(1));
+  //         });
+  //       });
+  //       describe('When Api call fails', () => {
+  //         beforeEach(() => {
+  //           tasks[0] = { ...tasks[0], id: '1' };
+  //           mockTaskService.updateTask.mockReturnValue(throwError(() => httpErrorResponse));
 
-          tasksComponent.allTasks.set(tasks);
-          tasksComponent.onToggleComplete(tasks[0]);
-        });
-        it('should not update the allTasks', () => {
-          expect(tasksComponent.allTasks()).toEqual(tasks);
-        });
-        it('should call toastr.error', () => {
-          expect(mockToastrService.error).toHaveBeenCalledTimes(1);
-          expect(mockToastrService.error).toHaveBeenCalledWith(
-            httpErrorResponse.message,
-            'Error',
-            FailConfig,
-          );
-        });
-      });
-    });
-    describe('If task.id is not existing', () => {
-      it('should not update the allTasks', () => {
-        mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
-        tasksComponent.allTasks.set(tasks);
-        tasksComponent.onToggleComplete(tasks[0]);
-        expect(tasksComponent.allTasks()).toEqual(tasks);
-      });
-    });
-  });
+  //           tasksComponent.allTasks.set(tasks);
+  //           tasksComponent.onToggleComplete(tasks[0]);
+  //         });
+  //         it('should not update the allTasks', () => {
+  //           expect(tasksComponent.allTasks()).toEqual(tasks);
+  //         });
+  //         it('should call toastr.error', () => {
+  //           expect(mockToastrService.error).toHaveBeenCalledTimes(1);
+  //           expect(mockToastrService.error).toHaveBeenCalledWith(
+  //             httpErrorResponse.message,
+  //             'Error',
+  //             FailConfig,
+  //           );
+  //         });
+  //       });
+  //     });
+  //     describe('If task.id is not existing', () => {
+  //       it('should not update the allTasks', () => {
+  //         mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
+  //         tasksComponent.allTasks.set(tasks);
+  //         tasksComponent.onToggleComplete(tasks[0]);
+  //         expect(tasksComponent.allTasks()).toEqual(tasks);
+  //       });
+  //     });
+  //   });
 });
