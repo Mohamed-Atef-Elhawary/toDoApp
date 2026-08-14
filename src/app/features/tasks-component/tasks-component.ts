@@ -95,11 +95,12 @@ export class TasksComponent implements OnInit {
     }
   }
   onToggleImportant(updatedTask: Itask) {
+    const OldTasks = this.storedTasks();
     this.storedTasks.update((tasks) => {
       return tasks.map((task) => {
         const modifiedTask: Itask = { ...task };
         if (task.id === updatedTask.id) {
-          modifiedTask.isImportant = !updatedTask.isImportant;
+          modifiedTask.isImportant = !task.isImportant;
         }
         return modifiedTask;
       });
@@ -113,6 +114,7 @@ export class TasksComponent implements OnInit {
       },
       error: (err) => {
         this.toastr.error(err.message, 'Error', FailConfig);
+        this.storedTasks.set(OldTasks);
       },
     });
   }
