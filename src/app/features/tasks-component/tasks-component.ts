@@ -120,11 +120,12 @@ export class TasksComponent implements OnInit {
   }
 
   onToggleComplete(updatedTask: Itask) {
+    const OldTasks: Itask[] = this.storedTasks();
     this.storedTasks.update((tasks) => {
       return tasks.map((task) => {
         const modifiedTask: Itask = { ...task };
         if (task.id === updatedTask.id) {
-          modifiedTask.isComplete = !updatedTask.isComplete;
+          modifiedTask.isComplete = !task.isComplete;
         }
         return modifiedTask;
       });
@@ -140,13 +141,16 @@ export class TasksComponent implements OnInit {
       },
       error: (err) => {
         this.toastr.error(err.message, 'Error', FailConfig);
+        this.storedTasks.set(OldTasks);
       },
     });
   }
 
   onDelete(deletedTask: Itask) {
-    const id = deletedTask.id;
-    id && this.storedTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
+    const OldTasks: Itask[] = this.storedTasks();
+
+    this.storedTasks.update((tasks) => tasks.filter((task) => task.id !== deletedTask.id));
+
     this.taskService.modifyTasks(this.storedTasks()).subscribe({
       next: (tasks) => {
         this.allTasks.set(tasks);
@@ -157,6 +161,7 @@ export class TasksComponent implements OnInit {
       },
       error: (err) => {
         this.toastr.error(err.message, 'Error', FailConfig);
+        this.storedTasks.set(OldTasks);
       },
     });
   }

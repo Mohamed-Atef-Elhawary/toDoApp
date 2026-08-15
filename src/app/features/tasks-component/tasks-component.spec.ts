@@ -153,17 +153,6 @@ describe('TasksComponent', () => {
       ]);
     });
 
-    //   it('should call taskService.addTask() with array of new task title and id blus storedTasks', () => {
-    //     const newTaskTitle: string = 'task 1';
-    //     const existingTasks = tasksComponent.storedTasks();
-    //     tasksComponent.onNewTask(newTaskTitle);
-    //     expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
-    //     expect(mockTaskService.modifyTasks).toHaveBeenCalledWith([
-    //       { title: newTaskTitle, id: expect.any(String) },
-    //       ...existingTasks,
-    //     ]);
-    //   });
-
     describe('When API succeeds', () => {
       let newTaskTitle = 'task 6';
       let newMokedTask: Itask = { title: newTaskTitle, id: '6' };
@@ -277,6 +266,7 @@ describe('TasksComponent', () => {
       beforeEach(() => {
         mockTaskService.modifyTasks.mockReturnValue(throwError(() => httpErrorResponse));
         tasksComponent.storedTasks.set(tasks);
+        tasksComponent.allTasks.set([tasks[0]]);
         tasksComponent.onToggleImportant(updatedTask);
       });
       it('should call toastr.error with specific message', () => {
@@ -290,66 +280,172 @@ describe('TasksComponent', () => {
       it('should reSet storedTasks with old tasks', () => {
         expect(tasksComponent.storedTasks()).toEqual(tasks);
       });
+
+      it('should not modify allTasks', () => {
+        expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
+      });
     });
   });
 
   describe("Toggle task's isComplete", () => {
-    //     describe('If task.id is existing', () => {
-    //       it('should call taskService.updateTask with the task id and toggled isComplete value', () => {
-    //         tasks[0] = { ...tasks[0], id: '1' };
-    //         tasksComponent.onToggleComplete(tasks[0]);
-    //         expect(mockTaskService.updateTask).toHaveBeenCalledTimes(1);
-    //         expect(mockTaskService.updateTask).toHaveBeenCalledWith(tasks[0].id, {
-    //           isComplete: !tasks[0].isComplete,
-    //         });
-    //       });
-    //       describe('When Api call succeeds', () => {
-    //         beforeEach(() => {
-    //           tasks[0] = { ...tasks[0], id: '1' };
-    //           mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
-    //           tasksComponent.allTasks.set(tasks);
-    //           tasksComponent.onToggleComplete(tasks[0]);
-    //         });
-    //         it('should update the isComplete status of the specified task', () => {
-    //           const modifiedTask: Itask = tasksComponent
-    //             .allTasks()
-    //             .find((task) => task.id === tasks[0].id)!;
-    //           expect(modifiedTask).toEqual({ ...tasks[0], isComplete: true });
-    //         });
-    //         it('should not impact the other tasks', () => {
-    //           const otherTasks: Itask[] = tasksComponent
-    //             .allTasks()
-    //             .filter((task) => task.id !== tasks[0].id);
-    //           expect(otherTasks).toEqual(tasks.slice(1));
-    //         });
-    //       });
-    //       describe('When Api call fails', () => {
-    //         beforeEach(() => {
-    //           tasks[0] = { ...tasks[0], id: '1' };
-    //           mockTaskService.updateTask.mockReturnValue(throwError(() => httpErrorResponse));
-    //           tasksComponent.allTasks.set(tasks);
-    //           tasksComponent.onToggleComplete(tasks[0]);
-    //         });
-    //         it('should not update the allTasks', () => {
-    //           expect(tasksComponent.allTasks()).toEqual(tasks);
-    //         });
-    //         it('should call toastr.error', () => {
-    //           expect(mockToastrService.error).toHaveBeenCalledTimes(1);
-    //           expect(mockToastrService.error).toHaveBeenCalledWith(
-    //             httpErrorResponse.message,
-    //             'Error',
-    //             FailConfig,
-    //           );
-    //         });
-    //       });
-    //     });
-    //     describe('If task.id is not existing', () => {
-    //       it('should not update the allTasks', () => {
-    //         mockTaskService.updateTask.mockReturnValue(of({ ...tasks[0], isComplete: true }));
-    //         tasksComponent.allTasks.set(tasks);
-    //         tasksComponent.onToggleComplete(tasks[0]);
-    //         expect(tasksComponent.allTasks()).toEqual(tasks);
-    //       });
-    //     });
+    it("should toggle task's isComplete status in storedTasks", () => {
+      tasksComponent.storedTasks.set(tasks);
+      const modifiedTask: Itask = { ...tasks[0], isComplete: true };
+
+      tasksComponent.onToggleComplete(modifiedTask);
+      expect(tasksComponent.storedTasks()[0].isComplete).toBe(true);
+    });
+    it('should call taskService.modifyTasks with the storedTasks', () => {
+      tasksComponent.storedTasks.set(tasks);
+      tasksComponent.onToggleComplete(tasks[0]);
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledWith(tasksComponent.storedTasks());
+    });
+    it('should call taskService.modifyTasks once', () => {
+      tasksComponent.storedTasks.set(tasks);
+      tasksComponent.onToggleComplete(tasks[0]);
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
+    });
+
+    describe('When Api call succeeds', () => {
+      beforeEach(() => {
+        tasksComponent.storedTasks.set(tasks);
+        mockTaskService.modifyTasks.mockReturnValue(of(tasks));
+      });
+      it('should set the allTasks with the tasks comming form AIP', () => {
+        tasksComponent.onToggleComplete(tasks[0]);
+        expect(tasksComponent.allTasks()).toEqual(tasks);
+      });
+      it('should call toastr.success once', () => {
+        tasksComponent.onToggleComplete(tasks[0]);
+        expect(mockToastrService.success).toHaveBeenCalledTimes(1);
+      });
+      it('should call toastr.success with the specified message', () => {
+        tasksComponent.onToggleComplete(tasks[0]);
+        expect(mockToastrService.success).toHaveBeenCalledWith(
+          'complete status has been changed',
+          'Success',
+          SuccessConfig,
+        );
+      });
+      it('should refilter allTasks', () => {
+        fixture.detectChanges();
+        mockTaskService.searchString$.next('task 1');
+        tasksComponent.onToggleComplete(tasks[0]);
+        expect(tasksComponent.allTasks()[0].title).toBe('task 1');
+      });
+      it('should reEmit taskService.searchString$ with the same value', () => {
+        let emissionErray: string[] = [];
+        mockTaskService.searchString$.next('task 1');
+        mockTaskService.searchString$.subscribe((value) => emissionErray.push(value));
+        tasksComponent.onToggleComplete(tasks[0]);
+        expect(emissionErray.length).toBe(2);
+        expect(emissionErray[0]).toBe(emissionErray[1]);
+      });
+    });
+    describe('When Api call fails', () => {
+      beforeEach(() => {
+        mockTaskService.modifyTasks.mockReturnValue(throwError(() => httpErrorResponse));
+        tasksComponent.storedTasks.set(tasks);
+        tasksComponent.allTasks.set([tasks[0]]);
+        tasksComponent.onToggleComplete(tasks[0]);
+      });
+      it('should call toastr.error', () => {
+        expect(mockToastrService.error).toHaveBeenCalledTimes(1);
+        expect(mockToastrService.error).toHaveBeenCalledWith(
+          httpErrorResponse.message,
+          'Error',
+          FailConfig,
+        );
+      });
+      it('should reSet storedTasks with old tasks', () => {
+        expect(tasksComponent.storedTasks()).toEqual(tasks);
+      });
+      it('should not modify allTasks', () => {
+        expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
+      });
+    });
+  });
+
+  describe('delete task', () => {
+    it('should delete the spesific task from  storedTasks ', () => {
+      tasksComponent.storedTasks.set(tasks);
+      tasksComponent.onDelete(tasks[0]);
+      expect(tasksComponent.storedTasks()).toEqual(tasks.slice(1));
+    });
+    it('should call taskService.modifyTasks with storedTasks', () => {
+      tasksComponent.storedTasks.set(tasks);
+      tasksComponent.onDelete(tasks[0]);
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledWith(tasksComponent.storedTasks());
+    });
+
+    /*
+    
+    هل الcase دي مهمه 
+    it('should call taskService.modifyTasks once', () => {});
+    */
+    it('should call taskService.modifyTasks once', () => {
+      tasksComponent.storedTasks.set(tasks);
+      tasksComponent.onDelete(tasks[0]);
+      expect(mockTaskService.modifyTasks).toHaveBeenCalledTimes(1);
+    });
+
+    describe('When Api call succeeds', () => {
+      beforeEach(() => {
+        tasksComponent.storedTasks.set(tasks);
+        mockTaskService.modifyTasks.mockReturnValue(of(tasks));
+      });
+      it('should set the allTasks with the tasks comming form AIP', () => {
+        tasksComponent.onDelete(tasks[0]);
+        expect(tasksComponent.allTasks()).toEqual(tasks);
+      });
+      it('should call toastr.success once', () => {
+        tasksComponent.onDelete(tasks[0]);
+        expect(mockToastrService.success).toHaveBeenCalledTimes(1);
+      });
+      it('should call toastr.success with the specified message', () => {
+        tasksComponent.onDelete(tasks[0]);
+        expect(mockToastrService.success).toHaveBeenCalledWith(
+          'task has been deleted successfully',
+          'Success',
+          SuccessConfig,
+        );
+      });
+      it('should refilter allTasks', () => {
+        fixture.detectChanges();
+        mockTaskService.searchString$.next('task 2');
+        tasksComponent.onDelete(tasks[0]);
+        expect(tasksComponent.allTasks()[0].title).toBe('task 2');
+      });
+      it('should reEmit taskService.searchString$ with the same value', () => {
+        let emissionErray: string[] = [];
+        mockTaskService.searchString$.next('task 1');
+        mockTaskService.searchString$.subscribe((value) => emissionErray.push(value));
+        tasksComponent.onDelete(tasks[0]);
+        expect(emissionErray.length).toBe(2);
+        expect(emissionErray[0]).toBe(emissionErray[1]);
+      });
+    });
+    describe('When Api call fails', () => {
+      beforeEach(() => {
+        mockTaskService.modifyTasks.mockReturnValue(throwError(() => httpErrorResponse));
+        tasksComponent.storedTasks.set(tasks);
+        tasksComponent.allTasks.set([tasks[0]]);
+        tasksComponent.onDelete(tasks[0]);
+      });
+      it('should call toastr.error', () => {
+        expect(mockToastrService.error).toHaveBeenCalledTimes(1);
+        expect(mockToastrService.error).toHaveBeenCalledWith(
+          httpErrorResponse.message,
+          'Error',
+          FailConfig,
+        );
+      });
+      it('should reSet storedTasks with old tasks', () => {
+        expect(tasksComponent.storedTasks()).toEqual(tasks);
+      });
+      it('should not modify allTasks', () => {
+        expect(tasksComponent.allTasks()).toEqual([tasks[0]]);
+      });
+    });
   });
 });
