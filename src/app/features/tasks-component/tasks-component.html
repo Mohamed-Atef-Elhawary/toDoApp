@@ -1,5 +1,6 @@
 <div class="p-2 flex flex-col gap-4">
   <app-page-title-component [category]="category()" />
+
   @if (category() === 'all') {
     <app-task-input-component (newTask)="onNewTask($event)" />
   }

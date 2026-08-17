@@ -8,7 +8,7 @@ import { Itask } from '../../interfaces/task-interface';
 import { Mock } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FailConfig, SuccessConfig } from '../../config/toastr-config';
-type MockTaskService = {
+export type MockTaskService = {
   searchString$: BehaviorSubject<string>;
   getTasks: Mock;
   modifyTasks: Mock;
@@ -56,7 +56,40 @@ describe('TasksComponent', () => {
   it('should create the app', () => {
     expect(tasksComponent).toBeTruthy();
   });
-
+  describe('specificTasks', () => {
+    let specifiedTasks: Itask[];
+    beforeEach(() => {
+      specifiedTasks = [
+        { title: 'task 1', id: '1', isImportant: true },
+        { title: 'task 2', id: '2', isComplete: true },
+        { title: 'task 3', id: '3' },
+        { title: 'task 4', id: '4', isImportant: true },
+        { title: 'task 5', id: '5', isComplete: true },
+      ];
+      mockTaskService.getTasks.mockReturnValue(of<Itask[]>(specifiedTasks));
+    });
+    it('should return only important tasks when category is "important"', () => {
+      mockActivatedRoute.paramMap = of({ get: vi.fn((category) => 'important') });
+      fixture.detectChanges();
+      expect(tasksComponent.specificTasks()).toEqual([
+        { title: 'task 1', id: '1', isImportant: true },
+        { title: 'task 4', id: '4', isImportant: true },
+      ]);
+    });
+    it('should return only complete tasks when category is "complete"', () => {
+      mockActivatedRoute.paramMap = of({ get: vi.fn((category) => 'complete') });
+      fixture.detectChanges();
+      expect(tasksComponent.specificTasks()).toEqual([
+        { title: 'task 2', id: '2', isComplete: true },
+        { title: 'task 5', id: '5', isComplete: true },
+      ]);
+    });
+    it('should return all tasks otherwise', () => {
+      mockActivatedRoute.paramMap = of({ get: vi.fn((category) => '') });
+      fixture.detectChanges();
+      expect(tasksComponent.specificTasks()).toEqual(specifiedTasks);
+    });
+  });
   describe('Setting category from route param', () => {
     it('should set the category to the value from the route param when it exists', () => {
       mockActivatedRoute.paramMap = of({ get: vi.fn((category: string) => 'important') });
@@ -378,11 +411,6 @@ describe('TasksComponent', () => {
       expect(mockTaskService.modifyTasks).toHaveBeenCalledWith(tasksComponent.storedTasks());
     });
 
-    /*
-    
-    هل الcase دي مهمه 
-    it('should call taskService.modifyTasks once', () => {});
-    */
     it('should call taskService.modifyTasks once', () => {
       tasksComponent.storedTasks.set(tasks);
       tasksComponent.onDelete(tasks[0]);
