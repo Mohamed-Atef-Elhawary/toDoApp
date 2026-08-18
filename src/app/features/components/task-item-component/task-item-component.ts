@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { afterRenderEffect, Component, input, output } from '@angular/core';
 import { Itask } from '../../../interfaces/task-interface';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faStar as faSolidStar } from '@fortawesome/free-solid-svg-icons';
@@ -14,21 +14,30 @@ import { faXmarkCircle } from '@fortawesome/free-regular-svg-icons';
   styleUrl: './task-item-component.css',
 })
 export class TaskItemComponent {
-  allTasks = input.required<Itask[]>();
   solidStar = faSolidStar;
   regularStar = faRegularStar;
   solidCheck = faSolidCheck;
   regularCheck = faRegularCheck;
   xmake = faXmarkCircle;
+
+  allTasks = input.required<Itask[]>();
   toggleImportant = output<Itask>();
   toggleComplete = output<Itask>();
   delete = output<Itask>();
+  constructor() {
+    afterRenderEffect(() => {
+      let div = document.querySelector('article div');
+      console.log(div);
+    });
+  }
   onToggleImportant(task: Itask) {
     this.toggleImportant.emit(task);
   }
+
   onToggleCompleted(task: Itask) {
     this.toggleComplete.emit(task);
   }
+
   onDelete(task: Itask) {
     this.delete.emit(task);
   }
