@@ -83,20 +83,53 @@ describe('TaskItemComponent', () => {
         });
         describe('when the isImportant status is true', () => {
           it('should display solidStar icon', () => {
-            let div = taskItemNtiveElement.querySelector('article div');
-            console.log(div?.firstChild);
+            const solidStarSvg: Element | null = taskItemNtiveElement.querySelector(
+              'fa-icon [data-icon="star"][data-prefix="fas"]',
+            );
+            expect(solidStarSvg).toBeTruthy();
           });
-          it('should call onToggleImportant with "task" when icon clicked', () => {});
+          it('should call onToggleImportant with "task" when icon clicked', () => {
+            const spyonToggleImportant = vi.spyOn(taskItemComponent, 'onToggleImportant');
+            const solidStar = taskItemNtiveElement.querySelector('fa-icon')! as HTMLElement;
+            solidStar.click();
+            expect(spyonToggleImportant).toHaveBeenCalledTimes(1);
+            expect(spyonToggleImportant).toHaveBeenCalledWith(tasks[0]);
+          });
         });
         describe('when the isImportant status is false', () => {
-          it('should display regularStar icon', () => {});
-          it('should call onToggleImportant with "task" when icon clicked', () => {});
+          it('should display regularStar icon', () => {
+            const unImportantDiv = taskItemNtiveElement.querySelectorAll('div')[1];
+            const RegularStarSvg = unImportantDiv.querySelector(
+              'fa-icon [data-icon="star"][data-prefix="far"]',
+            );
+
+            expect(RegularStarSvg).toBeTruthy();
+          });
+          it('should call onToggleImportant with "task" when icon clicked', () => {
+            const unImportantDiv = taskItemNtiveElement.querySelectorAll('div')[1];
+            const RegularStarIcon = unImportantDiv.querySelector('fa-icon') as HTMLElement;
+            const spyOnonToggleImportant = vi.spyOn(taskItemComponent, 'onToggleImportant');
+            RegularStarIcon.click();
+            expect(taskItemComponent.onToggleImportant).toHaveBeenCalledTimes(1);
+            expect(taskItemComponent.onToggleImportant).toHaveBeenCalledWith(tasks[1]);
+          });
         });
       });
 
       describe('task isComplete status', () => {
+        let tasks: Itask[];
+        beforeEach(() => {
+          tasks = [
+            { title: 'task 1', id: '1', isImportant: true, isComplete: true },
+            { title: 'task 2', id: '2' },
+          ];
+          fixture.componentRef.setInput('allTasks', tasks);
+          fixture.detectChanges();
+        });
         describe('when the isComplete status is true', () => {
-          it('should display solidCheck icon', () => {});
+          it('should display solidCheck icon', () => {
+            // const solidCheckSvg = ;
+          });
           it('should call onToggleCompleted with "task" when icon clicked', () => {});
         });
         describe('when the isComplete status is false', () => {
@@ -105,11 +138,11 @@ describe('TaskItemComponent', () => {
         });
       });
 
-      it('should display xmake icon', () => {});
-      it('should call onDelete with "task" when icon clicked', () => {});
+      // it('should display xmake icon', () => {});
+      // it('should call onDelete with "task" when icon clicked', () => {});
     });
-    describe('if allTasks is  empty ', () => {
-      it('should not render any article elements', () => {});
-    });
+    // describe('if allTasks is  empty ', () => {
+    //   it('should not render any article elements', () => {});
+    // });
   });
 });

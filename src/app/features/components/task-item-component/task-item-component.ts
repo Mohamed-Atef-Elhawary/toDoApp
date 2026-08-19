@@ -24,12 +24,7 @@ export class TaskItemComponent {
   toggleImportant = output<Itask>();
   toggleComplete = output<Itask>();
   delete = output<Itask>();
-  constructor() {
-    afterRenderEffect(() => {
-      let div = document.querySelector('article div');
-      console.log(div);
-    });
-  }
+
   onToggleImportant(task: Itask) {
     this.toggleImportant.emit(task);
   }
