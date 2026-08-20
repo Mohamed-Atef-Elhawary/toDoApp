@@ -128,21 +128,79 @@ describe('TaskItemComponent', () => {
         });
         describe('when the isComplete status is true', () => {
           it('should display solidCheck icon', () => {
-            // const solidCheckSvg = ;
+            const solidCheckSvg: Element | null = taskItemNtiveElement.querySelector(
+              'div fa-icon [data-icon="circle-check"][data-prefix="fas"]',
+            );
+
+            expect(solidCheckSvg).toBeTruthy();
           });
-          it('should call onToggleCompleted with "task" when icon clicked', () => {});
+          it('should call onToggleCompleted with "task" when icon clicked', () => {
+            const solidCheck: HTMLElement = taskItemNtiveElement.querySelector(
+              'div fa-icon:nth-child(2)',
+            )!;
+            const spyOnToggleCompleted = vi.spyOn(taskItemComponent, 'onToggleCompleted');
+            solidCheck.click();
+            expect(spyOnToggleCompleted).toHaveBeenCalledTimes(1);
+            expect(spyOnToggleCompleted).toHaveBeenCalledWith(tasks[0]);
+          });
         });
         describe('when the isComplete status is false', () => {
-          it('should display regularCheck icon', () => {});
-          it('should call onToggleCompleted with "task" when icon clicked', () => {});
+          it('should display regularCheck icon', () => {
+            const unCompleteDiv = taskItemNtiveElement.querySelectorAll('div')[1];
+            const regularCheckSvg = unCompleteDiv.querySelector(
+              'fa-icon [data-icon="circle-check"][data-prefix="far"]',
+            );
+
+            expect(regularCheckSvg).toBeTruthy();
+          });
+          it('should call onToggleCompleted with "task" when icon clicked', () => {
+            const unCompleteDiv = taskItemNtiveElement.querySelectorAll('div')[1];
+            const regularCheck: HTMLElement = unCompleteDiv.querySelector('fa-icon:nth-child(2')!;
+            const spyOnToggleCompleted = vi.spyOn(taskItemComponent, 'onToggleCompleted');
+            regularCheck.click();
+            expect(spyOnToggleCompleted).toHaveBeenCalledTimes(1);
+            expect(spyOnToggleCompleted).toHaveBeenCalledWith(tasks[1]);
+          });
         });
       });
+      describe('delete task', () => {
+        let tasks: Itask[];
+        beforeEach(() => {
+          tasks = [
+            { title: 'task 1', id: '1', isImportant: true, isComplete: true },
+            { title: 'task 2', id: '2' },
+          ];
+          fixture.componentRef.setInput('allTasks', tasks);
+          fixture.detectChanges();
+        });
+        it('should display xmake icon', () => {
+          const divs: NodeListOf<HTMLDivElement> = taskItemNtiveElement.querySelectorAll('div');
+          divs.forEach((div) => {
+            const xmarkSvg = div.querySelector(
+              'fa-icon [data-icon="circle-xmark"][data-prefix="far"]',
+            );
 
-      // it('should display xmake icon', () => {});
-      // it('should call onDelete with "task" when icon clicked', () => {});
+            expect(xmarkSvg).toBeTruthy();
+          });
+        });
+        it('should call onDelete with "task" when icon clicked', () => {
+          const div: HTMLDivElement = taskItemNtiveElement.querySelector('div')!;
+
+          const xmarkIcon: HTMLElement = div.querySelector(':nth-child(3)')!;
+          const spyOnDelete = vi.spyOn(taskItemComponent, 'onDelete');
+          xmarkIcon.click();
+          expect(spyOnDelete).toHaveBeenCalledTimes(1);
+          expect(spyOnDelete).toHaveBeenCalledWith(tasks[0]);
+        });
+      });
     });
-    // describe('if allTasks is  empty ', () => {
-    //   it('should not render any article elements', () => {});
-    // });
+    describe('if allTasks is  empty ', () => {
+      it('should not render any article elements', () => {
+        fixture.componentRef.setInput('allTasks', []);
+        fixture.detectChanges();
+        const articles: NodeListOf<HTMLElement> = document.querySelectorAll('article');
+        expect(articles.length).toBe(0);
+      });
+    });
   });
 });
