@@ -9,9 +9,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    loadComponent: () =>
-      import('./features/components/not-foune-component/not-foune-component').then(
-        (c) => c.NotFouneComponent,
-      ),
+    redirectTo: '/tasks/all',
+    pathMatch: 'full',
   },
 ];
